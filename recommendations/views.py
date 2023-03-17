@@ -53,8 +53,17 @@ def recommend_articles(request):
                 # print(article_matrix)
                 # article = Foods.objects.get(product_id=i+1)
                 recommended_articles.append({
-                    'food_name': article.product_name,
-                    'food_description': article.description,
+                    'product_id' : article.product_id,
+                    'merchant_id' : article.merchant_id,
+                    'category_id' : article.category_id,
+                    'product_name' : article.product_name,
+                    'price' : article.price,
+                    'calories' : article.calories,
+                    'product_image' : article.product_image,
+                    'stock' : article.stock,
+                    'status' : article.status,
+                    'description': article.description,
+                    'date' : article.date
                 })
             return JsonResponse({'recommended_foods': recommended_articles})
         else:
