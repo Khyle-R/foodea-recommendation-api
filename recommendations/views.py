@@ -65,7 +65,7 @@ def recommend_articles(request):
                     'description': article.description,
                     'date' : article.date
                 })
-            return JsonResponse(recommended_articles)
+            return JsonResponse({recommended_articles})
         else:
             return JsonResponse({'message': "User does not have enough data of orders. Recommendations can't proceed"})
     else:
