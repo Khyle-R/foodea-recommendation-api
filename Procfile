@@ -1,1 +1,1 @@
-web: gunicorn foodea.wsgi
+web: gunicorn foodea/foodea.wsgi
