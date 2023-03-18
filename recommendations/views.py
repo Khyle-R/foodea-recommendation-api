@@ -15,7 +15,7 @@ def recommend_articles(request):
         user = User.objects.get(user_id=request_user_id)
 
         # Get the recent orders of the user
-        orders = Orders.objects.filter(customer_id=user.user_id).values('product_id')
+        orders = Orders.objects.filter(customer_id=user.user_id).values('product_id').order_by('-updated_at')
 
         if orders.exists():
             count_orders = orders.count()
