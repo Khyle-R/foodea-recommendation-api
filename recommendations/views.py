@@ -12,21 +12,106 @@ def recommend_articles(request):
     request_user_id = request.GET.get('id')
     user = User.objects.get(user_id=request_user_id)
 
-    # Get the recent orders of the user
-    orders = Orders.objects.filter(customer_id=user.user_id).values('product_id')
+    if user.exists():
+        # Get the recent orders of the user
+        orders = Orders.objects.filter(customer_id=user.user_id).values('product_id')
 
-    if orders.exists():
-        count_orders = orders.count()
-        print(count_orders)
+        if orders.exists():
+            count_orders = orders.count()
+            if count_orders > 5:
+                orders = orders[:5]
+                #put all the orders description, ingredients and name in a variable
+                user_preference = ""
+                for order in orders:
+                    temp_food = Foods.objects.get(product_id=order['product_id'])
+                    user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
 
-        if count_orders > 5:
-            orders = orders[:5]
-            #put all the orders description, ingredients and name in a variable
-            user_preference = ""
-            for order in orders:
-                temp_food = Foods.objects.get(product_id=order['product_id'])
-                user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
+                # Create a TF-IDF vectorizer
+                vectorizer = TfidfVectorizer(stop_words='english')
 
+                # Get all the articles from the database
+                articles = Foods.objects.all()
+
+                # Create a TF-IDF matrix for the descriptiom
+                article_matrix = vectorizer.fit_transform([article.ingredients + ' ' + article.description + ' ' + article.product_name for article in articles])
+
+                # Create a TF-IDF vector for the user's preferences
+                preferences_vector = vectorizer.transform([user_preference])
+
+                # Calculate the cosine similarity between the user's preferences and the articles
+                similarity_scores = cosine_similarity(preferences_vector, article_matrix)
+
+                # Find the top 5 most similar articles to the user's preferences
+                similar_articles = similarity_scores.argsort()[0][::-1][:5]
+
+                # Return the recommended articles as a JSON response
+                recommended_articles = []
+                # print(similar_articles)
+                for i in similar_articles:
+                    article = articles[int(i)]
+                    # print(article_matrix)
+                    # article = Foods.objects.get(product_id=i+1)
+                    recommended_articles.append({
+                        'product_id' : article.product_id,
+                        'merchant_id' : article.merchant_id,
+                        'category_id' : article.category_id,
+                        'product_name' : article.product_name,
+                        'price' : article.price,
+                        'calories' : article.calories,
+                        'product_image' : article.product_image,
+                        'stock' : article.stock,
+                        'status' : article.status,
+                        'description': article.description,
+                        'date' : article.date
+                    })
+                return JsonResponse({'foods': recommended_articles})
+            else:
+                # recommendation will base on the user's preferences
+                user_preference = user.preferences
+
+                # Create a TF-IDF vectorizer
+                vectorizer = TfidfVectorizer(stop_words='english')
+
+                # Get all the articles from the database
+                articles = Foods.objects.all()
+
+                # Create a TF-IDF matrix for the descriptiom
+                article_matrix = vectorizer.fit_transform([article.ingredients + ' ' + article.description + ' ' + article.product_name for article in articles])
+
+                # Create a TF-IDF vector for the user's preferences
+                preferences_vector = vectorizer.transform([user_preference])
+
+                # Calculate the cosine similarity between the user's preferences and the articles
+                similarity_scores = cosine_similarity(preferences_vector, article_matrix)
+
+                # Find the top 5 most similar articles to the user's preferences
+                similar_articles = similarity_scores.argsort()[0][::-1][:5]
+
+                # Return the recommended articles as a JSON response
+                recommended_articles = []
+                # print(similar_articles)
+                for i in similar_articles:
+                    article = articles[int(i)]
+                    # print(article_matrix)
+                    # article = Foods.objects.get(product_id=i+1)
+                    recommended_articles.append({
+                        'product_id' : article.product_id,
+                        'merchant_id' : article.merchant_id,
+                        'category_id' : article.category_id,
+                        'product_name' : article.product_name,
+                        'price' : article.price,
+                        'calories' : article.calories,
+                        'product_image' : article.product_image,
+                        'stock' : article.stock,
+                        'status' : article.status,
+                        'description': article.description,
+                        'date' : article.date
+                    })
+                return JsonResponse({'foods': recommended_articles})
+        else:
+            # recommendation will base on the user's preferences
+            user_preference = user.preferences
+            
             # Create a TF-IDF vectorizer
             vectorizer = TfidfVectorizer(stop_words='english')
 
@@ -66,10 +151,8 @@ def recommend_articles(request):
                     'date' : article.date
                 })
             return JsonResponse({'foods': recommended_articles})
-        else:
-            return JsonResponse({'message': "User does not have enough data of orders. Recommendations can't proceed"})
     else:
-        return JsonResponse({'message': "User have no orders yet. Recommendations can't proceed"})
+        return JsonResponse({'message': 'User does not exist'})
 
     # print(user_preference)
 

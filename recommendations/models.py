@@ -31,6 +31,8 @@ class User(models.Model):
     bmi = models.DecimalField(max_digits=8, decimal_places=2)
     email = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
+    lifestyle = models.CharField(max_length=255)
+    preferences = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
