@@ -10,7 +10,7 @@ import json
 def recommend_articles(request):
     # Get the user's id in the request assuming the method is get
     request_user_id = request.GET.get('id')
-    user = User.objects.get(user_id=request_user_id, default=None)
+    user = User.objects.get(user_id=request_user_id)
 
     if user:
         # Get the recent orders of the user
