@@ -235,7 +235,7 @@ def api_preferred_calorie(request):
     try:
         user = User.objects.get(user_id=request_user_id)
         calorie = calculate_user_preferred_calorie_per_day(user.user_id)
-        return JsonResponse({'current_calorie': calorie})
+        return JsonResponse({'preferred_calorie': calorie})
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
     
