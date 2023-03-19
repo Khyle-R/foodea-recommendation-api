@@ -18,5 +18,8 @@ from django.urls import path
 from recommendations import views
 
 urlpatterns = [
-    path('recommendations/', views.recommend_articles, name='recommend_articles')
+    path('', views.home, name='home'),
+    path('recommendations/', views.recommend_articles, name='recommend_articles'),
+    path('current_calorie/', views.api_current_calorie, name='api_current_calorie'),
+    path('preferred_calorie/', views.api_preferred_calorie, name='api_preferred_calorie')
 ]

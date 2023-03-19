@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Foods, User, Orders
+import datetime
 import json
 
 @csrf_exempt
@@ -13,6 +14,11 @@ def recommend_articles(request):
 
     try:
         user = User.objects.get(user_id=request_user_id)
+
+        current_user_calorie = calculate_today_calorie(user.user_id)
+        preferred_calorie = calculate_user_preferred_calorie_per_day(user.user_id)
+
+        remaining_calorie = preferred_calorie - current_user_calorie
 
         # Get the recent orders of the user
         orders = Orders.objects.filter(customer_id=user.user_id).values('product_id').order_by('-updated_at')
@@ -31,7 +37,11 @@ def recommend_articles(request):
                 vectorizer = TfidfVectorizer(stop_words='english')
 
                 # Get all the articles from the database
-                articles = Foods.objects.all()
+                articles = Foods.objects.filter(calories__lte=remaining_calorie)
+                if(articles.count() < 10):
+                    articles = Foods.objects.all()
+                else:
+                    pass
 
                 # Create a TF-IDF matrix for the descriptiom
                 article_matrix = vectorizer.fit_transform([article.ingredients + ' ' + article.description + ' ' + article.product_name for article in articles])
@@ -74,7 +84,11 @@ def recommend_articles(request):
                 vectorizer = TfidfVectorizer(stop_words='english')
 
                 # Get all the articles from the database
-                articles = Foods.objects.all()
+                articles = Foods.objects.filter(calories__lte=remaining_calorie)
+                if(articles.count() < 10):
+                    articles = Foods.objects.all()
+                else:
+                    pass
 
                 # Create a TF-IDF matrix for the descriptiom
                 article_matrix = vectorizer.fit_transform([article.ingredients + ' ' + article.description + ' ' + article.product_name for article in articles])
@@ -154,76 +168,76 @@ def recommend_articles(request):
             return JsonResponse({'foods': recommended_articles})
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
+    
+def calculate_today_calorie(user):
+    total_calories = 0
+    date = datetime.datetime.now()
+    today = date.strftime("%Y-%m-%d")
+ 
+    today_orders = Orders.objects.filter(customer_id=user)
+    for order in today_orders:
+        order_date = order.updated_at
+        converted_order_date = order_date.strftime("%Y-%m-%d")
+        if (converted_order_date == today):
+            try:
+                food = Foods.objects.get(product_id=order.product_id)
+                total_calories = total_calories + food.calories
+            except Foods.DoesNotExist:
+                continue
+        else:
+            continue
+    
+    return total_calories
 
-    # print(user_preference)
+def calculate_user_preferred_calorie_per_day(user):
+    calorie_per_day = 0
+    try:
+        current_user = User.objects.get(user_id=user)
+        if(current_user.gender == 'M'):
+            bmr = (10 * current_user.weight) + (6.25 * current_user.height) - (5 * current_user.age) + 5
+            if (current_user.lifestyle == 'A'):
+                calorie_per_day = bmr * 1.2
+            elif(current_user.lifestyle == 'B'):
+                calorie_per_day = bmr * 1.375
+            elif(current_user.lifestyle == 'C'):
+                calorie_per_day = bmr * 1.55
+            elif(current_user.lifestyle == 'D'):
+                calorie_per_day = bmr * 1.725
+            else:
+                calorie_per_day = bmr * 1.9
+        else:
+            bmr = (10 * current_user.weight) + (6.25 * current_user.height) - (5 * current_user.age) - 161
+            if (current_user.lifestyle == 'A'):
+                calorie_per_day = bmr * 1.2
+            elif(current_user.lifestyle == 'B'):
+                calorie_per_day = bmr * 1.375
+            elif(current_user.lifestyle == 'C'):
+                calorie_per_day = bmr * 1.55
+            elif(current_user.lifestyle == 'D'):
+                calorie_per_day = bmr * 1.725
+            else:
+                calorie_per_day = bmr * 1.9
+        return calorie_per_day
+    except User.DoesNotExist:
+        return calorie_per_day
 
-    # if request.method == 'POST':
-    #     # Get the user's article preferences from the API request
-    #     preferences = json.loads(request.body)['preferences']
+def api_current_calorie(request):
+    request_user_id = request.GET.get('id')
+    try:
+        user = User.objects.get(user_id=request_user_id)
+        calorie = calculate_today_calorie(user.user_id)
+        return JsonResponse({'current_calorie': calorie})
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'User does not exist'})
 
-    #     # Create a TF-IDF vectorizer
-    #     vectorizer = TfidfVectorizer(stop_words='english')
-
-    #     # Get all the articles from the database
-    #     articles = Foods.objects.all()
-
-    #     # Create a TF-IDF matrix for the descriptiom
-    #     article_matrix = vectorizer.fit_transform([article.ingredients + ' ' + article.description + ' ' + article.product_name for article in articles])
-
-    #     # Create a TF-IDF vector for the user's preferences
-    #     preferences_vector = vectorizer.transform([preferences])
-
-    #     # Calculate the cosine similarity between the user's preferences and the articles
-    #     similarity_scores = cosine_similarity(preferences_vector, article_matrix)
-
-    #     # Find the top 5 most similar articles to the user's preferences
-    #     similar_articles = similarity_scores.argsort()[0][::-1][:5]
-
-    #    # Return the recommended articles as a JSON response
-    #     recommended_articles = []
-    #     # print(similar_articles)
-    #     for i in similar_articles:
-    #         article = articles[int(i)]
-    #         # print(article_matrix)
-    #         # article = Foods.objects.get(product_id=i+1)
-    #         recommended_articles.append({
-    #             'food_name': article.product_name,
-    #             'food_description': article.description,
-    #         })
-    #     return JsonResponse({'recommended_foods': recommended_articles})
-    # else:
-    #     # Get the user's article preferences from the API request
-    #     preferences = request.GET.get('preferences')
-
-    #     # Create a TF-IDF vectorizer
-    #     vectorizer = TfidfVectorizer(stop_words='english')
-
-    #     # Get all the articles from the database
-    #     articles = Foods.objects.all()
-
-    #     # Create a TF-IDF matrix for the descriptiom
-    #     article_matrix = vectorizer.fit_transform([article.ingredients + ' ' + article.description + ' ' + article.product_name for article in articles])
-
-    #     # Create a TF-IDF vector for the user's preferences
-    #     preferences_vector = vectorizer.transform([preferences])
-
-    #     # Calculate the cosine similarity between the user's preferences and the articles
-    #     similarity_scores = cosine_similarity(preferences_vector, article_matrix)
-
-    #     # Find the top 5 most similar articles to the user's preferences
-    #     similar_articles = similarity_scores.argsort()[0][::-1][:5]
-
-    #    # Return the recommended articles as a JSON response
-    #     recommended_articles = []
-    #     # print(similar_articles)
-    #     for i in similar_articles:
-    #         article = articles[int(i)]
-    #         # print(article_matrix)
-    #         # article = Foods.objects.get(product_id=i+1)
-    #         recommended_articles.append({
-    #             'food_name': article.product_name,
-    #             'food_description': article.description,
-    #         })
-    #     return JsonResponse({'recommended_foods': recommended_articles})
-    #     # return JsonResponse({'message': 'This API endpoint only accepts POST requests'})
-
+def api_preferred_calorie(request):
+    request_user_id = request.GET.get('id')
+    try:
+        user = User.objects.get(user_id=request_user_id)
+        calorie = calculate_user_preferred_calorie_per_day(user.user_id)
+        return JsonResponse({'current_calorie': calorie})
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'User does not exist'})
+    
+def home(request):
+    return JsonResponse({'message': 'Nothing to see here'})

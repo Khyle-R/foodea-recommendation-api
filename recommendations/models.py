@@ -27,6 +27,7 @@ class User(models.Model):
     height = models.IntegerField()
     gender = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
+    age = models.IntegerField()
     contact_number = models.CharField(max_length=20)
     bmi = models.DecimalField(max_digits=8, decimal_places=2)
     email = models.CharField(max_length=255)
