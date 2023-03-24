@@ -181,7 +181,7 @@ def calculate_today_calorie(user):
         if (converted_order_date == today):
             try:
                 food = Foods.objects.get(product_id=order.product_id)
-                total_calories = total_calories + food.calories
+                total_calories = total_calories + int(food.calories)
             except Foods.DoesNotExist:
                 continue
         else:
