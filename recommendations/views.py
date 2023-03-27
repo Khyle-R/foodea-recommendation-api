@@ -30,9 +30,12 @@ def recommend_articles(request):
                 #put all the orders description, ingredients and name in a variable
                 user_preference = ""
                 for order in orders:
-                    temp_food = Foods.objects.get(product_id=order['product_id'])
-                    user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
-
+                    try:
+                        temp_food = Foods.objects.get(product_id=order['product_id'])
+                        user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
+                    except Foods.DoesNotExist:
+                        continue
+                    
                 # Create a TF-IDF vectorizer
                 vectorizer = TfidfVectorizer(stop_words='english')
 
