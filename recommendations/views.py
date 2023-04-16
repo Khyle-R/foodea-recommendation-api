@@ -21,7 +21,7 @@ def recommend_articles(request):
         remaining_calorie = preferred_calorie - current_user_calorie
 
         # Get the recent orders of the user
-        orders = Orders.objects.filter(customer_id=user.user_id).values('product_id').order_by('-updated_at')
+        orders = Orders.objects.filter(customer_id=user.user_id, status="Paid").values('product_id').order_by('-updated_at')
 
         if orders.exists():
             count_orders = orders.count()
