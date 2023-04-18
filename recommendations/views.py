@@ -189,7 +189,7 @@ def calculate_today_calorie(user):
     # today = date.strftime("%Y-%m-%d")
     today = timezone.now().date()
  
-    today_orders = Orders.objects.filter(customer_id=user, updated_at__date=today)
+    today_orders = Orders.objects.filter(customer_id=user, status="Paid", updated_at__date=today)
     for order in today_orders:
         try:
             food = Foods.objects.get(product_id=order.product_id)
