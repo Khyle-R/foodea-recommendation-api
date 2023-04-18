@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Foods, User, Orders
 import datetime
+from django.utils import timezone
 import json
 
 @csrf_exempt
@@ -20,8 +21,18 @@ def recommend_articles(request):
 
         remaining_calorie = preferred_calorie - current_user_calorie
 
-        # Get the recent orders of the user
-        orders = Orders.objects.filter(customer_id=user.user_id, status="Paid").values('product_id').order_by('-updated_at')
+        # Get the current date 
+        # date = datetime.datetime.now()
+        # today = date.strftime("%Y-%m-%d")
+
+        # get the current date in the format of '%Y-%m-%d'
+        today = timezone.now().date()
+
+
+        # Get the recent orders of the user 
+        orders = Orders.objects.filter(customer_id=user.user_id, status="Paid", updated_at__date=today).values('product_id').order_by('-updated_at')
+
+        # 
 
         if orders.exists():
             count_orders = orders.count()
