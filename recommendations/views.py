@@ -226,7 +226,7 @@ def calculate_today_calorie(user):
         #     continue
         try:
             food = Foods.objects.get(product_id=order.product_id)
-            total_calories = total_calories + int(food.calories)
+            total_calories = total_calories + food.calories
         except Foods.DoesNotExist:
             continue
         # order_date = order.updated_at
@@ -246,7 +246,7 @@ def calculate_today_calorie(user):
     if other_foods.exists():
         for foods in other_foods:
             calories = foods.calories
-            total_calories = total_calories + int(calories)
+            total_calories = total_calories + calories
     else:
         pass
 
