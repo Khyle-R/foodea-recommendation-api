@@ -217,23 +217,28 @@ def calculate_today_calorie(user):
     # today = timezone.now().date()
  
     #check paid orders within the day
-    today_orders = Orders.objects.filter(customer_id=user, status="Paid")
+    today_orders = Orders.objects.filter(customer_id=user, status="Paid", date=today)
     for order in today_orders:
         # try:
         #     food = Foods.objects.get(product_id=order.product_id)
         #     total_calories = total_calories + int(food.calories)
         # except Foods.DoesNotExist:
         #     continue
-        order_date = order.updated_at
-        converted_order_date = order_date.strftime("%Y-%m-%d")
-        if (converted_order_date == today):
-            try:
-                food = Foods.objects.get(product_id=order.product_id)
-                total_calories = total_calories + int(food.calories)
-            except Foods.DoesNotExist:
-                continue
-        else:
+        try:
+            food = Foods.objects.get(product_id=order.product_id)
+            total_calories = total_calories + int(food.calories)
+        except Foods.DoesNotExist:
             continue
+        # order_date = order.updated_at
+        # converted_order_date = order_date.strftime("%Y-%m-%d")
+        # if (converted_order_date == today):
+        #     try:
+        #         food = Foods.objects.get(product_id=order.product_id)
+        #         total_calories = total_calories + int(food.calories)
+        #     except Foods.DoesNotExist:
+        #         continue
+        # else:
+        #     continue
     
     #check if user input items on the consumed food table
     other_foods = ConsumedFood.objects.filter(user_id=user, date=today)
