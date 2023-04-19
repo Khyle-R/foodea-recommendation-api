@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Foods, User, Orders, Favorites
+from .models import Foods, User, Orders, Favorites, ConsumedFood
 import datetime
 from django.utils import timezone
 import json
@@ -216,6 +216,7 @@ def calculate_today_calorie(user):
     today = date.strftime("%Y-%m-%d")
     # today = timezone.now().date()
  
+    #check paid orders within the day
     today_orders = Orders.objects.filter(customer_id=user, status="Paid")
     for order in today_orders:
         # try:
@@ -233,6 +234,16 @@ def calculate_today_calorie(user):
                 continue
         else:
             continue
+    
+    #check if user input items on the consumed food table
+    other_foods = ConsumedFood.objects.filter(user_id=user, date=today)
+
+    if other_foods.exists():
+        for foods in other_foods:
+            calories = foods.calories
+            total_calories = total_calories + int(calories)
+    else:
+        pass
     
     return total_calories
 

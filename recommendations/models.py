@@ -67,5 +67,15 @@ class Favorites(models.Model):
     class Meta:
         db_table = 'favorites'
 
+class ConsumedFood(models.Model):
+    id = models.IntegerField(primary_key=True)
+    user_id = models.IntegerField()
+    food_name = models.CharField(max_length=255)
+    calories = models.IntegerField()
+    date = models.DateTimeField()
+
+    class Meta:
+        db_table = 'consumed_food'
+
 
 
