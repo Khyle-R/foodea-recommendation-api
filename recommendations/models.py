@@ -56,3 +56,16 @@ class Orders(models.Model):
 
     class Meta:
         db_table = 'tbl_orders'
+
+class Favorites(models.Model):
+    id = models.IntegerField(primary_key=True)
+    user_id = models.IntegerField()
+    product_id = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'favorites'
+
+
+

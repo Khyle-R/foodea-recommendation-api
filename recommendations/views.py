@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from .models import Foods, User, Orders
+from .models import Foods, User, Orders, Favorites
 import datetime
 from django.utils import timezone
 import json
@@ -38,6 +38,7 @@ def recommend_articles(request):
             count_orders = orders.count()
             if count_orders > 5:
                 orders = orders[:5]
+
                 #put all the orders description, ingredients and name in a variable
                 user_preference = ""
                 for order in orders:
@@ -47,6 +48,19 @@ def recommend_articles(request):
                     except Foods.DoesNotExist:
                         continue
                     
+                #get the 10 recent favorites of user and add the info to the user preference
+                favorites = Favorites.objects.filter(user_id=user.user_id).order_by('-updated_at')[:10]
+
+                if favorites.exists():
+                    for fav in favorites:
+                        try:
+                            temp_food = Foods.objects.get(product_id=fav['product_id'])
+                            user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
+                        except Foods.DoesNotExist:
+                            continue
+                else:
+                    pass
+
                 # Create a TF-IDF vectorizer
                 vectorizer = TfidfVectorizer(stop_words='english')
 
@@ -93,6 +107,19 @@ def recommend_articles(request):
             else:
                 # recommendation will base on the user's preferences
                 user_preference = user.preferences
+
+                #get the 10 recent favorites of user and add the info to the user preference
+                favorites = Favorites.objects.filter(user_id=user.user_id).order_by('-updated_at')[:10]
+
+                if favorites.exists():
+                    for fav in favorites:
+                        try:
+                            temp_food = Foods.objects.get(product_id=fav['product_id'])
+                            user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
+                        except Foods.DoesNotExist:
+                            continue
+                else:
+                    pass
 
                 # Create a TF-IDF vectorizer
                 vectorizer = TfidfVectorizer(stop_words='english')
