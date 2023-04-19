@@ -280,14 +280,11 @@ def calculate_user_preferred_calorie_per_day(user):
         return calorie_per_day
 
 def api_current_calorie(request):
-    date = datetime.datetime.now()
-    today = date.strftime("%Y-%m-%d")
-
     request_user_id = request.GET.get('id')
     try:
         user = User.objects.get(user_id=request_user_id)
         calorie = calculate_today_calorie(user.user_id)
-        return JsonResponse({'current_calorie': calorie, 'date': today})
+        return JsonResponse({'current_calorie': calorie})
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
 
