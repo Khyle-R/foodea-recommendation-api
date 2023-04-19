@@ -114,7 +114,7 @@ def recommend_articles(request):
                 if favorites.exists():
                     for fav in favorites:
                         try:
-                            favorite_id = fav['product_id']
+                            favorite_id = fav.product_id
                             temp_food = Foods.objects.get(product_id=favorite_id)
                             user_preference = user_preference + ' ' + temp_food.ingredients + ' ' + temp_food.description + ' ' + temp_food.product_name
                         except Foods.DoesNotExist:
