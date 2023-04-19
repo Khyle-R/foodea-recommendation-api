@@ -185,27 +185,27 @@ def recommend_articles(request):
     
 def calculate_today_calorie(user):
     total_calories = 0
-    # date = datetime.datetime.now()
-    # today = date.strftime("%Y-%m-%d")
-    today = timezone.now().date()
+    date = datetime.datetime.now()
+    today = date.strftime("%Y-%m-%d")
+    # today = timezone.now().date()
  
-    today_orders = Orders.objects.filter(customer_id=user, status="Paid", updated_at__date=today)
+    today_orders = Orders.objects.filter(customer_id=user, status="Paid")
     for order in today_orders:
-        try:
-            food = Foods.objects.get(product_id=order.product_id)
-            total_calories = total_calories + int(food.calories)
-        except Foods.DoesNotExist:
-            continue
-        # order_date = order.updated_at
-        # converted_order_date = order_date.strftime("%Y-%m-%d")
-        # if (converted_order_date == today):
-        #     try:
-        #         food = Foods.objects.get(product_id=order.product_id)
-        #         total_calories = total_calories + int(food.calories)
-        #     except Foods.DoesNotExist:
-        #         continue
-        # else:
+        # try:
+        #     food = Foods.objects.get(product_id=order.product_id)
+        #     total_calories = total_calories + int(food.calories)
+        # except Foods.DoesNotExist:
         #     continue
+        order_date = order.updated_at
+        converted_order_date = order_date.strftime("%Y-%m-%d")
+        if (converted_order_date == today):
+            try:
+                food = Foods.objects.get(product_id=order.product_id)
+                total_calories = total_calories + int(food.calories)
+            except Foods.DoesNotExist:
+                continue
+        else:
+            continue
     
     return total_calories
 
