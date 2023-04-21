@@ -313,7 +313,7 @@ def api_weekly_calorie(request):
     request_user_id = request.GET.get('id')
     try:
         user = User.objects.get(user_id=request_user_id)
-        weekly = calculate_today_calorie(user.user_id)
+        weekly = weekly_average_calorie(user.user_id)
         return JsonResponse({'weekly_calorie': weekly})
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
