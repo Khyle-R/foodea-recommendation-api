@@ -6,6 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from .models import Foods, User, Orders, Favorites, ConsumedFood
 from django.db.models.functions import TruncWeek
 from django.db.models import Count
+from django.db.models import Subquery, OuterRef, Sum, F, Value
 import datetime
 from django.utils import timezone
 import json
@@ -262,7 +263,12 @@ def weekly_average_calorie(user):
         status="Delivered"
     ).annotate(
         week=TruncWeek('date'),
-        calories=get_calorie_of_product('product_id')
+    ).annotate(
+        calories=Subquery(
+            Foods.objects.filter(
+                product_id=OuterRef('product_id')
+            ).values('calories')[:1]
+        )
     ).values('week', 'calories').annotate(
         count=Count('id')
     ).order_by('week')
