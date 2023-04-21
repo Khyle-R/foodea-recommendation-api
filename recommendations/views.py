@@ -350,7 +350,7 @@ def api_weekly_calorie(request):
     
         for i in range(6):
             if i == 0:
-                today_orders = Orders.objects.filter(customer_id=user, status="Delivered", date=today)
+                today_orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered", date=today)
                 if today_orders.exists():
                     for order in today_orders:
                         try:
@@ -363,7 +363,7 @@ def api_weekly_calorie(request):
             else:
                 yesterday = date - timedelta(days=i)
                 yesterday_str = yesterday.strftime("%Y-%m-%d")
-                today_orders = Orders.objects.filter(customer_id=user, status="Delivered", date=yesterday_str)
+                today_orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered", date=yesterday_str)
                 if today_orders.exists():
                     for order in today_orders:
                         try:
