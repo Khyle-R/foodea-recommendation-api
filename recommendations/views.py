@@ -341,7 +341,7 @@ def api_weekly_calorie(request):
                     for order in today_orders:
                         try:
                             food = Foods.objects.get(product_id=order.product_id)
-                            total_calories = total_calories + food.calories
+                            total_calories = total_calories + (food.calories * order.quantity)
                         except Foods.DoesNotExist:
                             continue
                 else:
@@ -380,7 +380,8 @@ def api_weekly_calorie(request):
                         for order in today_orders:
                             try:
                                 food = Foods.objects.get(product_id=order.product_id)
-                                total_calories = total_calories + food.calories
+                                
+                                total_calories = total_calories + (food.calories * order.quantity)
                             except Foods.DoesNotExist:
                                 continue
                     else:
