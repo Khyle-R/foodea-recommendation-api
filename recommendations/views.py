@@ -8,6 +8,7 @@ from django.db.models.functions import TruncWeek
 from django.db.models import Count
 from django.db.models import Subquery, OuterRef, Sum, F, Value
 import datetime
+from datetime import timedelta
 from django.utils import timezone
 import json
 
@@ -323,11 +324,80 @@ def api_current_calorie(request):
         return JsonResponse({'message': 'User does not exist'})
     
 def api_weekly_calorie(request):
+    # weekly_average = {}
     request_user_id = request.GET.get('id')
+    # try:
+    #     user = User.objects.get(user_id=request_user_id)
+    #     for i in range(4):
+    #         orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered")
+    #         for order in orders:
+    #             calories = 0
+    #             food = Foods.objects.get(order.product_id)
+    #             calories = calories
+    #     weekly = weekly_average_calorie(user.user_id)
+    #     return JsonResponse({'weekly_calorie': weekly})
+    # except User.DoesNotExist:
+    #     return JsonResponse({'message': 'User does not exist'})
     try:
         user = User.objects.get(user_id=request_user_id)
-        weekly = weekly_average_calorie(user.user_id)
-        return JsonResponse({'weekly_calorie': weekly})
+
+        total_calories = 0
+        date = datetime.datetime.now()
+        yesterday = date - timedelta(days=1)
+        today = date.strftime("%Y-%m-%d")
+        yesterday_str = yesterday.strftime("%Y-%m-%d")
+        # today = timezone.now().date()
+    
+        for i in range(6):
+            if i == 0:
+                today_orders = Orders.objects.filter(customer_id=user, status="Delivered", date=today)
+                if today_orders.exists():
+                    for order in today_orders:
+                        try:
+                            food = Foods.objects.get(product_id=order.product_id)
+                            total_calories = total_calories + food.calories
+                        except Foods.DoesNotExist:
+                            continue
+                else:
+                    pass
+            else:
+                yesterday = date - timedelta(days=i)
+                yesterday_str = yesterday.strftime("%Y-%m-%d")
+                today_orders = Orders.objects.filter(customer_id=user, status="Delivered", date=yesterday_str)
+                if today_orders.exists():
+                    for order in today_orders:
+                        try:
+                            food = Foods.objects.get(product_id=order.product_id)
+                            total_calories = total_calories + food.calories
+                        except Foods.DoesNotExist:
+                            continue
+                else:
+                    pass
+
+        # #check paid orders within the day
+        # today_orders = Orders.objects.filter(customer_id=user, status="Delivered", date=today)
+        # if today_orders.exists():
+        #     for order in today_orders:
+        #         try:
+        #             food = Foods.objects.get(product_id=order.product_id)
+        #             total_calories = total_calories + food.calories
+        #         except Foods.DoesNotExist:
+        #             continue
+        # else:
+        #     pass
+        
+        # #check if user input items on the consumed food table
+        # other_foods = ConsumedFood.objects.filter(user_id=user, date=today)
+
+        # if other_foods.exists():
+        #     for foods in other_foods:
+        #         calories = foods.calories
+        #         total_calories = total_calories + calories
+        # else:
+        #     pass
+
+        return JsonResponse({'thisweek': total_calories})
+        
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
 
