@@ -262,7 +262,7 @@ def weekly_average_calorie(user):
         status="Delivered"
     ).annotate(
         week=TruncWeek('date'),
-        calories=get_calorie_of_product('calories')
+        calories=get_calorie_of_product('product_id')
     ).values('week', 'calories').annotate(
         count=Count('id')
     ).order_by('week')
