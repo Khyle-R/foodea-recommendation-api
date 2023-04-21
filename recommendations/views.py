@@ -4,6 +4,8 @@ from django.views.decorators.csrf import csrf_exempt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from .models import Foods, User, Orders, Favorites, ConsumedFood
+from django.db.models.functions import TruncWeek
+from django.db.models import Count
 import datetime
 from django.utils import timezone
 import json
@@ -254,6 +256,18 @@ def calculate_today_calorie(user):
 
     return total_calories
 
+def weekly_average_calorie(user):
+    orders_by_week = Orders.objects.filter(
+        customer_id=user,
+        status="Delivered"
+    ).annotate(
+        week=TruncWeek('date')
+    ).values('week', 'product', 'quantity', 'calories').annotate(
+        count=Count('id')
+    ).order_by('week')
+
+    return orders_by_week
+
 def calculate_user_preferred_calorie_per_day(user):
     calorie_per_day = 0
     try:
@@ -292,6 +306,15 @@ def api_current_calorie(request):
         user = User.objects.get(user_id=request_user_id)
         calorie = calculate_today_calorie(user.user_id)
         return JsonResponse({'current_calorie': calorie})
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'User does not exist'})
+    
+def api_weekly_calorie(request):
+    request_user_id = request.GET.get('id')
+    try:
+        user = User.objects.get(user_id=request_user_id)
+        weekly = calculate_today_calorie(user.user_id)
+        return JsonResponse({'weekly_calorie': weekly})
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
 
