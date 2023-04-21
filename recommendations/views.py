@@ -324,7 +324,7 @@ def api_current_calorie(request):
         return JsonResponse({'message': 'User does not exist'})
     
 def api_weekly_calorie(request):
-    # weekly_average = {}
+    weekly_average = {}
     request_user_id = request.GET.get('id')
     # try:
     #     user = User.objects.get(user_id=request_user_id)
@@ -343,12 +343,10 @@ def api_weekly_calorie(request):
 
         total_calories = 0
         date = datetime.datetime.now()
-        yesterday = date - timedelta(days=1)
         today = date.strftime("%Y-%m-%d")
-        yesterday_str = yesterday.strftime("%Y-%m-%d")
         # today = timezone.now().date()
     
-        for i in range(6):
+        for i in range(27):
             if i == 0:
                 today_orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered", date=today)
                 if today_orders.exists():
@@ -360,19 +358,56 @@ def api_weekly_calorie(request):
                             continue
                 else:
                     pass
-            else:
-                yesterday = date - timedelta(days=i)
-                yesterday_str = yesterday.strftime("%Y-%m-%d")
-                today_orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered", date=yesterday_str)
-                if today_orders.exists():
-                    for order in today_orders:
-                        try:
-                            food = Foods.objects.get(product_id=order.product_id)
-                            total_calories = total_calories + food.calories
-                        except Foods.DoesNotExist:
-                            continue
+                #check if user input items on the consumed food table
+                other_foods = ConsumedFood.objects.filter(user_id=user, date=today)
+
+                if other_foods.exists():
+                    for foods in other_foods:
+                        calories = foods.calories
+                        total_calories = total_calories + calories
                 else:
                     pass
+            else:
+                if i == 6:
+                    weekly_average.update({'this_week': total_calories})
+                    total_calories = 0
+                    continue
+                elif i == 13:
+                    weekly_average.update({'past_week': total_calories})
+                    total_calories = 0
+                    continue
+                elif i == 20:
+                    weekly_average.update({'past_week_2': total_calories})
+                    total_calories = 0
+                    continue
+                elif i == 26:
+                    weekly_average.update({'past_week_3': total_calories})
+                    total_calories = 0
+                    continue
+                else:
+                    yesterday = date - timedelta(days=i)
+                    yesterday_str = yesterday.strftime("%Y-%m-%d")
+                    today_orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered", date=yesterday_str)
+                    if today_orders.exists():
+                        for order in today_orders:
+                            try:
+                                food = Foods.objects.get(product_id=order.product_id)
+                                total_calories = total_calories + food.calories
+                            except Foods.DoesNotExist:
+                                continue
+                    else:
+                        pass
+                    #check if user input items on the consumed food table
+                    other_foods = ConsumedFood.objects.filter(user_id=user, date=yesterday_str)
+
+                    if other_foods.exists():
+                        for foods in other_foods:
+                            calories = foods.calories
+                            total_calories = total_calories + calories
+                    else:
+                        pass
+            
+            
 
         # #check paid orders within the day
         # today_orders = Orders.objects.filter(customer_id=user, status="Delivered", date=today)
@@ -396,8 +431,7 @@ def api_weekly_calorie(request):
         # else:
         #     pass
 
-        return JsonResponse({'thisweek': total_calories})
-        
+        return JsonResponse(weekly_average)
     except User.DoesNotExist:
         return JsonResponse({'message': 'User does not exist'})
 
