@@ -326,18 +326,6 @@ def api_current_calorie(request):
 def api_weekly_calorie(request):
     weekly_average = {}
     request_user_id = request.GET.get('id')
-    # try:
-    #     user = User.objects.get(user_id=request_user_id)
-    #     for i in range(4):
-    #         orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered")
-    #         for order in orders:
-    #             calories = 0
-    #             food = Foods.objects.get(order.product_id)
-    #             calories = calories
-    #     weekly = weekly_average_calorie(user.user_id)
-    #     return JsonResponse({'weekly_calorie': weekly})
-    # except User.DoesNotExist:
-    #     return JsonResponse({'message': 'User does not exist'})
     try:
         user = User.objects.get(user_id=request_user_id)
 
@@ -359,7 +347,7 @@ def api_weekly_calorie(request):
                 else:
                     pass
                 #check if user input items on the consumed food table
-                other_foods = ConsumedFood.objects.filter(user_id=user, date=today)
+                other_foods = ConsumedFood.objects.filter(user_id=user.user_id, date=today)
 
                 if other_foods.exists():
                     for foods in other_foods:
@@ -398,7 +386,7 @@ def api_weekly_calorie(request):
                     else:
                         pass
                     #check if user input items on the consumed food table
-                    other_foods = ConsumedFood.objects.filter(user_id=user, date=yesterday_str)
+                    other_foods = ConsumedFood.objects.filter(user_id=user.user_id, date=yesterday_str)
 
                     if other_foods.exists():
                         for foods in other_foods:
