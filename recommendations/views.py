@@ -261,12 +261,19 @@ def weekly_average_calorie(user):
         customer_id=user,
         status="Delivered"
     ).annotate(
-        week=TruncWeek('date')
+        week=TruncWeek('date'),
+        calories=get_calorie_of_product('calories')
     ).values('week', 'calories').annotate(
         count=Count('id')
     ).order_by('week')
 
     return orders_by_week
+
+def get_calorie_of_product(id):
+    calorie = 0
+    food = Foods.objects.get(product_id=id)
+    calorie = food.calories
+    return calorie
 
 def calculate_user_preferred_calorie_per_day(user):
     calorie_per_day = 0
