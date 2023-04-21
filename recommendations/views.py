@@ -30,7 +30,7 @@ def recommend_articles(request):
 
 
         # Get the recent orders of the user
-        orders = Orders.objects.filter(customer_id=user.user_id, status="Paid").values('product_id').order_by('-updated_at')
+        orders = Orders.objects.filter(customer_id=user.user_id, status="Delivered").values('product_id').order_by('-updated_at')
 
         # 
 
